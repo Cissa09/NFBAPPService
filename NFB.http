@@ -1,0 +1,6 @@
+@NFB_HostAddress = http://localhost:5243
+
+GET {{NFB_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
