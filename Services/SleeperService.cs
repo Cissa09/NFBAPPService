@@ -29,16 +29,41 @@ namespace NFB.Services
             return await response.Content.ReadFromJsonAsync<User>();
         }
 
-        public async Task<List<Roster>> GetRostersAsync(string leagueId)
+        public async Task<List<EnrichedRoster>> GetEnrichedRostersAsync(string leagueId)
         {
-            var response = await _httpClient.GetAsync($"league/{leagueId}/rosters");
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<List<Roster>>();
+            // 1. Buscar os rosters da liga
+            var rostersResponse = await _httpClient.GetAsync($"league/{leagueId}/rosters");
+            rostersResponse.EnsureSuccessStatusCode();
+            var rosters = await rostersResponse.Content.ReadFromJsonAsync<List<Roster>>();
+
+            // 2. Buscar os dados dos jogadores a partir da API do Sleeper
+            // Essa API retorna um dicionário onde a chave é o ID do jogador
+            var playersResponse = await _httpClient.GetAsync("https://api.sleeper.app/v1/players/nfl");
+            playersResponse.EnsureSuccessStatusCode();
+            var playersDict = await playersResponse.Content.ReadFromJsonAsync<Dictionary<string, Player>>();
+
+            // 3. Enriquecer cada roster mapeando os IDs para os dados completos dos jogadores
+            var enrichedRosters = rosters.Select(r =>
+            {
+                var enrichedRoster = new EnrichedRoster
+                {
+                    RosterId = r.RosterId,
+                    OwnerId = r.OwnerId,
+                    Settings = r.Settings,
+                    Players = r.Players
+                        .Select(playerId => playersDict.TryGetValue(playerId, out var player) ? player : null)
+                        .Where(player => player != null)
+                        .ToList()
+                };
+                return enrichedRoster;
+            }).ToList();
+
+            return enrichedRosters;
         }
 
         public async Task<List<Standings>> GetStandingsAsync(string leagueId)
         {
-            var rosters = await GetRostersAsync(leagueId);
+            var rosters = await GetEnrichedRostersAsync(leagueId);
             var standings = new List<Standings>();
 
             foreach (var roster in rosters)
@@ -111,7 +136,7 @@ namespace NFB.Services
                 : championshipMatch.Team1RosterId;
 
             // Passo 3: Buscar dados dos managers
-            var rosters = await GetRostersAsync(leagueId);
+            var rosters = await GetEnrichedRostersAsync(leagueId);
             var championRoster = rosters.FirstOrDefault(r => r.RosterId == championRosterId);
             var viceRoster = rosters.FirstOrDefault(r => r.RosterId == viceChampionRosterId);
 

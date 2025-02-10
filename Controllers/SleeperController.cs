@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
+using NFB.DTOs;
 using NFB.Services;
 
 namespace NFB.Controllers
@@ -7,11 +9,11 @@ namespace NFB.Controllers
     [Route("api/sleeper")]
     public class SleeperController : ControllerBase
     {
-        private readonly SleeperService _sleeperService;
+        private readonly SleeperService _sleeperService;     
 
         public SleeperController(SleeperService sleeperService)
         {
-            _sleeperService = sleeperService;
+            _sleeperService = sleeperService;       
         }
 
         // Endpoint para buscar dados da liga
@@ -29,18 +31,12 @@ namespace NFB.Controllers
             }
         }
 
-        [HttpGet("rosters/{leagueId}")]
-        public async Task<IActionResult> GetRosters(string leagueId)
+        // GET: api/rosters/enriched/{leagueId}
+        [HttpGet("enriched/{leagueId}")]
+        public async Task<ActionResult<List<EnrichedRoster>>> GetEnrichedRosters(string leagueId)
         {
-            try
-            {
-                var rosters = await _sleeperService.GetRostersAsync(leagueId);
-                return Ok(rosters);
-            }
-            catch (HttpRequestException ex)
-            {
-                return StatusCode(500, $"Erro ao buscar rosters: {ex.Message}");
-            }
+            var enrichedRosters = await _sleeperService.GetEnrichedRostersAsync(leagueId);
+            return Ok(enrichedRosters);
         }
 
         // Endpoint para buscar a classificação

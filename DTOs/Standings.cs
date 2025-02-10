@@ -4,10 +4,9 @@
     {
         public int RosterId { get; set; }
         public string OwnerId { get; set; }
-        public string OwnerName { get; set; } // Nome do dono (buscaremos depois)
+        public string OwnerName { get; set; } 
         public int Wins { get; set; }
         public int Losses { get; set; }
         public double PointsFor { get; set; }
-        public int StandingPosition { get; set; } // Posição na classificação
-    }
+        public int StandingPosition { get; set; }
 }

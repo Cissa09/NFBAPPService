@@ -17,6 +17,31 @@ namespace NFB.DTOs
         public RosterSettings Settings { get; set; }
     }
 
+    public class Player
+    {
+        [JsonPropertyName("player_id")]
+        public string PlayerId { get; set; }
+
+        [JsonPropertyName("full_name")]
+        public string FullName { get; set; }
+
+        [JsonPropertyName("position")]
+        public string Position { get; set; }
+
+        [JsonPropertyName("team")]
+        public string Team { get; set; }      
+    }
+
+    public class EnrichedRoster
+    {
+        public int RosterId { get; set; }
+        public string OwnerId { get; set; }
+        public RosterSettings Settings { get; set; }
+
+        // Aqui os IDs são substituídos pelos detalhes completos dos jogadores
+        public List<Player> Players { get; set; }
+    }
+
     public class RosterSettings
     {
         [JsonPropertyName("wins")]
